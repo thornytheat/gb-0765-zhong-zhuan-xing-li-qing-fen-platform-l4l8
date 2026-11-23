@@ -6,4 +6,5 @@ REASONS = {
     'NO_LOAD': '缺少计划航段装载证据', 'OFFLOADED': '计划航段末态为撤下',
     'WRONG_LEG': '非计划航段末态为装载', 'MULTI_LOADED': '多个航段同时保持装载',
     'UNLISTED': '行李牌未出现在中转清单', 'UNCERTAIN': '存在未决扫描证据',
+    'RETAG_ANCHOR': '新牌在换牌生效前出现，归属存疑',
 }

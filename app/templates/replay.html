@@ -1,3 +1,11 @@
-<div class="panel-head"><h2>航段动作序列</h2><span>{{ stages.replay.counts.late }} 条迟到 · {{ stages.replay.counts.conflicts }} 条冲突</span></div>
-<div class="table-scroll"><table><thead><tr><th>行李牌</th><th>航段</th><th>生效 UTC</th><th>动作</th><th>前态</th><th>末态</th><th>原行</th></tr></thead><tbody>
-{% for row in stages.replay.rows %}<tr><td>{{ row.tag }}</td><td>{{ row.leg }}</td><td><time datetime="{{ row.effective }}">{{ row.effective[:19] }}</time></td><td>{{ row.action }}</td><td>{{ row.before }}</td><td>{{ row.after }}</td><td class="num">{{ row.line }}{{ ' · 迟到' if row.late }}</td></tr>{% endfor %}</tbody></table></div>
+<div class="panel-head"><h2>航段动作序列</h2><span>{{ stages.replay.counts.late }} 条迟到 · {{ stages.replay.counts.conflicts }} 条冲突 · {{ stages.replay.counts.retag_pieces }} 件换牌实物</span></div>
+{% if stages.replay.orders %}<div class="retag-strip" title="换牌单按生效时刻切分归属">
+{% for order in stages.replay.orders %}<span>原行 {{ order.line }}：<b>{{ order.old_tag }}</b> → <b>{{ order.new_tag }}</b> · {{ order.effective[:19] }}</span>{% endfor %}
+</div>{% endif %}
+{% if stages.replay.uncertain or stages.replay.retag_isolated %}
+<div class="table-scroll"><table><thead><tr><th>原行</th><th>扫描号</th><th>行李牌</th><th>归属</th><th>动作</th><th>生效 UTC</th></tr></thead><tbody>
+{% for row in stages.replay.uncertain %}<tr class="row-warn"><td class="num">{{ row.line }}</td><td>{{ row.event }}</td><td>{{ row.tag }}</td><td>{{ reasons[row.reason] }}</td><td>{{ row.action }}</td><td><time datetime="{{ row.effective }}">{{ row.effective[:19] }}</time></td></tr>{% endfor %}
+{% for row in stages.replay.retag_isolated %}<tr class="row-warn"><td class="num">{{ row.line }}</td><td>—</td><td>{{ row.old_tag }} → {{ row.new_tag }}</td><td>{{ reasons[row.reason] }}</td><td>—</td><td>{{ row.effective[:19] if row.effective not in ('', '-', 'N/A', 'NULL', '未知') else '—' }}</td></tr>{% endfor %}
+</tbody></table></div>{% endif %}
+<div class="table-scroll"><table><thead><tr><th>实物件</th><th>扫描牌</th><th>航段</th><th>生效 UTC</th><th>动作</th><th>前态</th><th>末态</th><th>归属</th><th>原行</th></tr></thead><tbody>
+{% for row in stages.replay.rows %}<tr><td>{{ row.piece }}{% if row.retag %} <small class="tag-swap" title="换牌单第 {{ row.retag.line }} 行">{{ row.retag.old_tag }}→{{ row.retag.new_tag }}</small>{% endif %}</td><td>{{ row.tag }}{% if row.tag != row.piece %} <small class="tag-moved">异牌</small>{% endif %}</td><td>{{ row.leg }}</td><td><time datetime="{{ row.effective }}">{{ row.effective[:19] }}</time></td><td>{{ row.action }}</td><td>{{ row.before }}</td><td>{{ row.after }}</td><td>{% if row.attribution %}{{ {'BEFORE_RETAG':'换牌前·归原件','AFTER_RETAG':'换牌后·新牌','TAG_REISSUED':'旧牌另发·独立件'}.get(row.attribution, row.attribution) }}{% else %}—{% endif %}</td><td class="num">{{ row.line }}{{ ' · 迟到' if row.late }}</td></tr>{% endfor %}</tbody></table></div>

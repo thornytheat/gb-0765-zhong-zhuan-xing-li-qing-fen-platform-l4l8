@@ -24,4 +24,4 @@ def test_sort_is_not_load(dirty):
 
 
 def test_empty_stream():
-    assert replay([])['counts'] == {'late': 0, 'states': 0, 'conflicts': 0}
+    assert replay([])['counts'] == {'late': 0, 'states': 0, 'conflicts': 0, 'retag_pieces': 0}

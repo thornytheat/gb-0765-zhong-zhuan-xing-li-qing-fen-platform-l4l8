@@ -2,10 +2,11 @@ from itertools import groupby
 from .radio import sequence
 
 
-def replay(rows):
+def replay(rows, uncertain=None):
     timeline, states, conflicts, repeats = [], [], [], []
-    for (tag, leg), stream in groupby(sequence(rows), key=lambda r: (r['tag'], r['leg'])):
-        state, sources = 'UNSEEN', []
+    uncertain = uncertain or []
+    for (piece, leg), stream in groupby(sequence(rows), key=lambda r: (r['piece'], r['leg'])):
+        state, sources, tags, retag_lines = 'UNSEEN', [], set(), set()
         for _, same_time in groupby(stream, key=lambda r: r['effective']):
             group = list(same_time)
             motions = {r['action'] for r in group} - {'SORT'}
@@ -16,6 +17,8 @@ def replay(rows):
             elif motions:
                 state = 'LOADED' if 'LOAD' in motions else 'OFFLOADED'
             sources.extend(r['line'] for r in group)
+            tags.update(r['tag'] for r in group)
+            retag_lines.update(r['retag']['line'] for r in group if r.get('retag'))
             seen = set()
             for r in group:
                 if r['action'] in seen:
@@ -23,6 +26,9 @@ def replay(rows):
                 else:
                     timeline.append(dict(r, before=before, after=state))
                 seen.add(r['action'])
-        states.append(dict(tag=tag, leg=leg, state=state, source_lines=sources))
+        states.append(dict(tag=piece, piece=piece, leg=leg, state=state, source_lines=sources,
+                           tags=sorted(tags), retag_lines=sorted(retag_lines)))
     return dict(rows=timeline, states=states, isolated=conflicts, repeats=repeats,
-                counts=dict(late=sum(row['late'] for row in timeline), states=len(states), conflicts=len(conflicts)))
+                uncertain=uncertain,
+                counts=dict(late=sum(row['late'] for row in timeline), states=len(states),
+                            conflicts=len(conflicts), retag_pieces=len({s['piece'] for s in states if s['retag_lines']})))

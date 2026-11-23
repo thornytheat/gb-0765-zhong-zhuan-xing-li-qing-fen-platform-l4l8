@@ -4,7 +4,8 @@ from app.modules.ledger.service import reconcile
 
 
 def test_dirty_totals(dirty):
-    assert dirty['ledger']['counts'] == dict(manifest=12, loaded=3, pending=8, not_loaded=1, unlisted=1, wrong_bags=2, wrong_legs=2)
+    assert dirty['ledger']['counts'] == dict(manifest=12, loaded=3, pending=8, not_loaded=1, unlisted=1,
+                                             wrong_bags=2, wrong_legs=2, pieces=13, retagged=0)
 
 
 def test_clean_totals():
